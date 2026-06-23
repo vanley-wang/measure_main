@@ -78,10 +78,6 @@ def process_one_sample(seg_label_dir, scatt_mat_dir, output_dir, measure_dir, fn
 def process_one_root_folder(root_dir, max_workers=8):
     seg_label_dir = os.path.join(root_dir, "seg_label")
     scatt_mat_dir = os.path.join(root_dir, "scatt_mat")
-    # output_dir = os.path.join(root_dir, "scatt")
-    # measure_dir = os.path.join(root_dir, "measure_excel")
-    
-    # 新建 wwl_measure 文件夹，并将保存结果放置在它的子文件中
     wwl_measure_dir = os.path.join(root_dir, "wwl_measure")
     output_dir = os.path.join(wwl_measure_dir, "scatt")
     measure_dir = os.path.join(wwl_measure_dir, "measure_excel")
@@ -108,8 +104,8 @@ def process_one_root_folder(root_dir, max_workers=8):
 
 if __name__ == "__main__":
     roots = [
-        r"Data\FXN_2023\FXN_20230701",
-        r"Data\FXN_2023\FXN_20230703"
+        r"Data\nnUNet_FXN\FXN_0701",
+        r"Data\nnUNet_FXN\FXN_0703"
     ]
     print(f"总共 {len(roots)} 个大文件夹；")
     for i, root in enumerate(roots):

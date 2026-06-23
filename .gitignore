@@ -62,3 +62,7 @@ PCA_model/
 *.log
 *.tmp
 *.temp
+*.tar
+*.tar.part*
+*.tar.gz
+*.tar.bz2
