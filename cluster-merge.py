@@ -10,8 +10,8 @@ scaler_path = 'model/scaler-scatt.pickle'
 
 # 要处理的数据根目录
 root_folders = [
-    'Data/FXN_2023_new/FXN_20230701',
-    'Data/FXN_2023_new/FXN_20230703'
+    'Data/nnUNet_FXN/FXN_0701',
+    'Data/nnUNet_FXN/FXN_0703'
 ]
 
 # 输出文件夹名称
@@ -41,12 +41,11 @@ label_desc = {
     3: '高散射实心型'
 }
 
-# 特征列表
-features = [
+# 模型训练时用的特征（11个，含 Scatt）
+MODEL_FEATURES = [
     'Organoids_Volume', 'Organoids_Volume_Fill', 'Organoids_Surface',
     'Cavity_Volume', 'CavityNum', 'LongAxis', 'ShortAxis',
     'Wall_Thickness', 'Sphericity', 'Scatt_Mean', 'Scatt_STD'
-
 ]
 
 # ================= 3. 执行批处理 =================
@@ -55,6 +54,12 @@ with open(model_path, 'rb') as f:
     kmeans = pickle.load(f)
 with open(scaler_path, 'rb') as f:
     scaler = pickle.load(f)
+
+# 诊断：打印模型期望的维度
+print(f"  Scaler 期望特征数: {getattr(scaler, 'n_features_in_', '未知')}")
+print(f"  KMeans 期望特征数: {getattr(kmeans, 'n_features_in_', '未知')}")
+print(f"  数据提供特征数: {len(MODEL_FEATURES)}")
+print(f"  处理方式: 先 scaler 全部 {len(MODEL_FEATURES)} 维 → 取前 9 维给 KMeans")
 
 for root in root_folders:
     input_dir = os.path.join(root, 'measure_excel')
@@ -73,14 +78,17 @@ for root in root_folders:
             # 1. 读取
             df = pd.read_excel(file_path)
 
-            if not all(col in df.columns for col in features):
+            if not all(col in df.columns for col in MODEL_FEATURES):
                 print(f"  [跳过] 缺少特征列: {os.path.basename(file_path)}")
                 continue
 
             # 2. 预测原始分类 (得到 0~5)
-            X = df[features]
-            X_std = scaler.transform(X)  # 必须使用 transform
-            raw_labels = kmeans.predict(X_std)
+            # scaler 是在 11 维上 fit 的，KMeans 是在前 9 维上训练的
+            # 用 .values 传 numpy array，绕过 sklearn DataFrame 列名验证
+            X = df[MODEL_FEATURES].fillna(0).values  # shape (N, 11)
+            X_std = scaler.transform(X)              # shape (N, 11)
+            X_std_morph = X_std[:, :9]               # 取前 9 维给 KMeans
+            raw_labels = kmeans.predict(X_std_morph)
 
             # 3. 核心：应用数值映射
             # 将 0-5 映射为 0, 1, 2
