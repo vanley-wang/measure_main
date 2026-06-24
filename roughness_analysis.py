@@ -12,8 +12,8 @@ warnings.filterwarnings("ignore")
 
 # ================= 配置区域 =================
 A_path = r'D:\Desktop\music\measure-main\Data\nnUNet_FXN\nnUNet_Analysis.xlsx'
-Path1 = r'D:\Desktop\music\measure-main\Data\nnUNet_FXN\FXN_0701\wwl_measure\roughness'
-Path2 = r'D:\Desktop\music\measure-main\Data\nnUNet_FXN\FXN_0703\wwl_measure\roughness'
+Path1 = r'D:\Desktop\music\measure-main\Data\nnUNet_FXN\FXN_0701\roughness'
+Path2 = r'D:\Desktop\music\measure-main\Data\nnUNet_FXN\FXN_0703\roughness'
 
 # 真实数据类别 (0, 1)
 TARGET_CLUSTERS = [0, 1]

@@ -7,25 +7,32 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from tqdm import tqdm
 
 def extract_scatt_stats_fast(label_map, scatt_map):
-    """提取每个 label 区域的散射系数均值和标准差"""
+    """提取每个 label 区域的散射系数均值和标准差（内存优化版）"""
     assert label_map.shape == scatt_map.shape
-    flat_label = label_map.flatten()
-    flat_scatt = scatt_map.flatten()
+    # 用 ravel() 代替 flatten()，避免复制
+    lbl = label_map.ravel().astype(np.int64)
+    sc = scatt_map.ravel().astype(np.float64)
 
-    mask = flat_label > 0
-    labels = flat_label[mask]
-    values = flat_scatt[mask]
+    max_lbl = int(lbl.max())
+    if max_lbl == 0:
+        return np.array([]), [], []
 
-    unique_labels = np.unique(labels)
-    means = []
-    stds = []
+    # 用 bincount 一次性统计所有 label，避免布尔 mask 和循环
+    counts = np.bincount(lbl, minlength=max_lbl + 1)[1:]
+    sums = np.bincount(lbl, weights=sc, minlength=max_lbl + 1)[1:]
+    sq_sums = np.bincount(lbl, weights=sc ** 2, minlength=max_lbl + 1)[1:]
 
-    for lbl in unique_labels:
-        region_vals = values[labels == lbl]
-        means.append(int(round(np.mean(region_vals))))
-        stds.append(int(round(np.std(region_vals))))
+    valid = counts > 0
+    means = np.zeros(max_lbl, dtype=np.float64)
+    stds = np.zeros(max_lbl, dtype=np.float64)
+    means[valid] = sums[valid] / counts[valid]
+    stds[valid] = np.sqrt(np.maximum(0, sq_sums[valid] / counts[valid] - means[valid] ** 2))
 
-    return unique_labels, means, stds
+    labels = np.arange(1, max_lbl + 1)[valid]
+    means = np.round(means[valid]).astype(int)
+    stds = np.round(stds[valid]).astype(int)
+
+    return labels, means.tolist(), stds.tolist()
 
 def process_one_sample(seg_label_dir, scatt_mat_dir, output_dir, measure_dir, fname):
     try:
@@ -78,14 +85,10 @@ def process_one_sample(seg_label_dir, scatt_mat_dir, output_dir, measure_dir, fn
 def process_one_root_folder(root_dir, max_workers=8):
     seg_label_dir = os.path.join(root_dir, "seg_label")
     scatt_mat_dir = os.path.join(root_dir, "scatt_mat")
-    wwl_measure_dir = os.path.join(root_dir, "wwl_measure")
-    output_dir = os.path.join(wwl_measure_dir, "scatt")
-    measure_dir = os.path.join(wwl_measure_dir, "measure_excel")
+    output_dir = os.path.join(root_dir, "scatt")
+    measure_dir = os.path.join(root_dir, "measure_excel")
 
     os.makedirs(output_dir, exist_ok=True)
-    os.makedirs(measure_dir, exist_ok=True)
-    os.makedirs(output_dir, exist_ok=True)
-    os.makedirs(measure_dir, exist_ok=True)
 
     mat_files = sorted([f for f in os.listdir(seg_label_dir) if f.endswith('_label.mat')])
     folder_suffix = os.path.basename(root_dir)[-4:]
@@ -111,5 +114,5 @@ if __name__ == "__main__":
     for i, root in enumerate(roots):
         print(f"\n[{i+1}/{len(roots)}] 开始处理大文件夹: {root}")
         start_time = time.time()
-        process_one_root_folder(root, max_workers=16)
+        process_one_root_folder(root, max_workers=1)
         print(f"✅ 处理完成: {root}, 耗时 {time.time() - start_time:.2f}s\n")

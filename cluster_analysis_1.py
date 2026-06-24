@@ -3,8 +3,8 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 
-path1 = 'Data/nnUNet_FXN/FXN_0701/cluster_excel'
-path2 = 'Data/nnUNet_FXN/FXN_0703/cluster_excel'
+path1 = 'Data/nnUNet_FXN/FXN_0701/cluster_merge'
+path2 = 'Data/nnUNet_FXN/FXN_0703/cluster_merge'
 
 
 file_ls = os.listdir(path1)

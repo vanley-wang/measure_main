@@ -169,10 +169,7 @@ if __name__ == '__main__':
         # cluster_path = os.path.join(loop, "cluster_merge")
         cluster_path = os.path.join(loop, "cluster_excel")
         # save_path = os.path.join(loop, "roughness")
-        # 新建 wwl_measure 文件夹，将结果保存在它的子文件夹 roughness 中
-        wwl_measure_dir = os.path.join(loop, "wwl_measure")
-        save_path = os.path.join(wwl_measure_dir, "roughness")
-        
+        save_path = os.path.join(loop, "roughness")
         os.makedirs(save_path, exist_ok=True)
 
         seg_list = [f for f in os.listdir(seg_path) if f.endswith('.mat')]
