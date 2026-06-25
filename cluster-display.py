@@ -20,11 +20,11 @@ with open(model_path, 'rb') as f:
 # 聚类中心的坐标 (Cluster Centers)
 centers = kmeans.cluster_centers_
 
-# 特征列表 (顺序必须完全一致)
+# 特征列表 (KMeans 训练时用的 9 个形态学特征，不含 Scatt)
 features = [
     'Organoids_Volume', 'Organoids_Volume_Fill', 'Organoids_Surface',
     'Cavity_Volume', 'CavityNum', 'LongAxis', 'ShortAxis',
-    'Wall_Thickness', 'Sphericity', 'Scatt_Mean', 'Scatt_STD'
+    'Wall_Thickness', 'Sphericity'
 ]
 
 # 转为 DataFrame

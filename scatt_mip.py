@@ -8,17 +8,17 @@ from tqdm import tqdm
 
 # ================= 配置 =================
 N_WORKERS = 8  # 并行进程数
-BASE = "Data/FXN_2023"
+BASE = "Data/FXN_2023_new（闭10新聚类）"  # 数据根目录
 FOLDERS = {
     '0701': {
-        'scatt_mat': os.path.join(BASE, 'FXN_20230701/scatt_mat'),
-        'seg_mat':   os.path.join(BASE, 'FXN_20230701/seg_mat'),
-        'output':    os.path.join(BASE, 'FXN_20230701/scatt_mip'),
+        'scatt_mat': os.path.join(BASE, 'FXN_0701', 'scatt_mat'),
+        'seg_mat':   os.path.join(BASE, 'FXN_0701', 'seg_label'),
+        'output':    os.path.join(BASE, 'FXN_0701', 'scatt_mip'),
     },
     '0703': {
-        'scatt_mat': os.path.join(BASE, 'FXN_20230703/scatt_mat'),
-        'seg_mat':   os.path.join(BASE, 'FXN_20230703/seg_mat'),
-        'output':    os.path.join(BASE, 'FXN_20230703/scatt_mip'),
+        'scatt_mat': os.path.join(BASE, 'FXN_0703', 'scatt_mat'),
+        'seg_mat':   os.path.join(BASE, 'FXN_0703', 'seg_label'),
+        'output':    os.path.join(BASE, 'FXN_0703', 'scatt_mip'),
     },
 }
 P_LOW, P_HIGH = 0.0, 99.9  # 用于色阶的分位数范围（同一方向，两个时间点合并后计算）
@@ -84,8 +84,8 @@ def process_sample_pair(args):
         # 读数据与掩膜
         d1 = load_mat_variable(paths_0701['scatt'], 'data_scatt')
         d3 = load_mat_variable(paths_0703['scatt'], 'data_scatt')
-        m1 = load_mat_variable(paths_0701['mask'],  'Data_Seg')  # 不旋转
-        m3 = load_mat_variable(paths_0703['mask'],  'Data_Seg')
+        m1 = load_mat_variable(paths_0701['mask'],  'Data_label')  # nnUNet 变量名
+        m3 = load_mat_variable(paths_0703['mask'],  'Data_label')
 
         if d1.shape != m1.shape or d3.shape != m3.shape:
             print(f"⚠️ 尺寸不匹配，跳过 {sample}: d1{d1.shape}, m1{m1.shape}, d3{d3.shape}, m3{m3.shape}")
@@ -153,7 +153,7 @@ def main():
             sample = prefix.split('_')[0]         # C11
             pairs.setdefault(sample, {})[day] = {
                 'scatt': os.path.join(scatt_dir, f),
-                'mask':  os.path.join(seg_dir,  f'{prefix}.mat'),
+                'mask':  os.path.join(seg_dir,  f'{prefix}_label.mat'),
             }
 
     tasks = []
